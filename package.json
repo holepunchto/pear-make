@@ -4,7 +4,11 @@
   "description": "Pear CLI app for building Pear CLI apps.",
   "private": true,
   "bin": "bin.mjs",
-  "upgrade": "pear://<YOUR_KEY_HERE>",
+  "upgrade": {
+    "production": "pear://aof1q968dibiyaayc8nt4m5gfbqkpyrgp4i79dffnekmima8333o",
+    "stage": "pear://m897mcrjujjk9hbcs18qf8yz993wkyhguttoxu8fre1qtd9dy3uo",
+    "dev": "pear://m9b5fx8druw5rpdoq8s4583ecuw5btwg5rxra93nwcy414ptt74y"
+  },
   "scripts": {
     "format": "prettier . --write",
     "test": "brittle-bare test/index.js",
