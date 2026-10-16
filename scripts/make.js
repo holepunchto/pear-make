@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 "use strict";
 
-const os = require("os");
 const path = require("path");
 const { spawnSync } = require("child_process");
 
 const root = path.resolve(__dirname, "..");
-const host = `${os.platform()}-${os.arch()}`;
+const host = process.env.HOST || `${process.platform}-${process.arch}`
 const script = `make:${host}`;
 const supported = new Set([
   "darwin-arm64",
@@ -25,7 +24,7 @@ if (!supported.has(host)) {
   process.exit(1);
 }
 
-const isWindows = os.platform() === "win32";
+const isWindows = process.platform === "win32";
 const opts = {
   cwd: root,
   stdio: "inherit",
