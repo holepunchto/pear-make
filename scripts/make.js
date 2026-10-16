@@ -5,7 +5,7 @@ const path = require("path");
 const { spawnSync } = require("child_process");
 
 const root = path.resolve(__dirname, "..");
-const host = process.env.HOST || `${process.platform}-${process.arch}`
+const host = process.env.HOST || `${process.platform}-${process.arch}`;
 const script = `make:${host}`;
 const supported = new Set([
   "darwin-arm64",
