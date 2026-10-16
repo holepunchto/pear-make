@@ -69,7 +69,7 @@ npm run make:linux-arm64
 npm run make:linux-x64
 ```
 
-Targets: `darwin-arm64`, `darwin-x64`, `linux-arm64`, `linux-x64`, `win32-arm64`, `win32-x64`. Output goes to `out/<platform>-<arch>`.
+Targets: `darwin-arm64`, `darwin-x64`, `linux-arm64`, `linux-x64`, `win32-arm64`, `win32-x64`. Output goes to `out/make`.
 
 ## License
 
