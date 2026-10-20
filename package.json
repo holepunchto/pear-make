@@ -5,7 +5,7 @@
   "private": true,
   "bin": "bin.mjs",
   "upgrade": {
-    "production": "pear://TODO",
+    "production": "pear://eqzdcjwne7th93fo6d1ipbnh7cgqgetf93p56uh39bj1efhb3m5o",
     "stage": "pear://m897mcrjujjk9hbcs18qf8yz993wkyhguttoxu8fre1qtd9dy3uo",
     "dev": "pear://m9b5fx8druw5rpdoq8s4583ecuw5btwg5rxra93nwcy414ptt74y"
   },
