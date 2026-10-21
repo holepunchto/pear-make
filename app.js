@@ -9,8 +9,9 @@ const ReadyResource = require("ready-resource");
 const build = require("bare-build/standalone");
 
 module.exports = class App extends ReadyResource {
-  static build({ entry, host, pathDir }) {
+  static build({ entry, name, host, pathDir }) {
     return build(entry, {
+      name,
       hosts: host,
       out: pathDir,
     });

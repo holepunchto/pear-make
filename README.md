@@ -30,6 +30,7 @@ Builds a standalone Pear CLI app by packaging the JavaScript code at `<entry>`.
 
 | Flag                    | Description                                |
 | ----------------------- | ------------------------------------------ |
+| `--name`                | application name                           |
 | `--host`                | host to target (default: the current host) |
 | `--path`                | output directory                           |
 | `--update-window`, `-w` | wait for update (ms, default 30000)        |

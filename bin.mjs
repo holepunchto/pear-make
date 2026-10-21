@@ -17,6 +17,7 @@ const cmd = command(
   appName,
   summary(pkg.description),
   arg("<entry>", "entry point of the app"),
+  flag("--name <name>", "application name"),
   flag(
     "--host <host>",
     "host to target (default: the current host)",
@@ -66,6 +67,7 @@ console.log("\nCLI ready.\n");
 try {
   await build({
     entry: cmd.args.entry,
+    name: cmd.flags.name,
     host: cmd.flags.host,
     pathDir: cmd.flags.path,
   });
@@ -129,8 +131,8 @@ function updateWindow(value) {
   return wait;
 }
 
-async function build({ entry, host, pathDir }) {
-  for await (const resource of App.build({ entry, host, pathDir })) {
+async function build({ entry, name, host, pathDir }) {
+  for await (const resource of App.build({ entry, name, host, pathDir })) {
     console.log(resource);
   }
 }
