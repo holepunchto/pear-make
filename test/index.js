@@ -10,6 +10,7 @@ test("builds basic app", { timeout: 120000 }, async (t) => {
 
   const entry = path.join(dir, "entry.js").replace(/\\/g, "/");
   const pathDir = path.join(dir, "out");
+  const name = "bin";
 
   fs.writeFileSync(entry, 'console.log("hello")');
 
@@ -23,7 +24,7 @@ test("builds basic app", { timeout: 120000 }, async (t) => {
   ];
 
   const resources = [];
-  for await (const resource of App.build({ entry, host, pathDir })) {
+  for await (const resource of App.build({ entry, host, pathDir, name })) {
     resources.push(resource);
   }
 
@@ -32,22 +33,22 @@ test("builds basic app", { timeout: 120000 }, async (t) => {
       path.relative(pathDir, resource).replace(/\\/g, "/"),
     ),
     [
-      "arm64/pear-make.exe",
-      "x64/pear-make.exe",
-      "pear-make",
-      "aarch64/pear-make",
-      "x86_64/pear-make",
+      `arm64/${name}.exe`,
+      `x64/${name}.exe`,
+      name,
+      `aarch64/${name}`,
+      `x86_64/${name}`,
     ],
     "yields expected executable paths",
   );
 
   const paths = {
-    "win32-arm64": "arm64/pear-make.exe",
-    "win32-x64": "x64/pear-make.exe",
-    "darwin-arm64": "pear-make",
-    "darwin-x64": "pear-make",
-    "linux-arm64": "aarch64/pear-make",
-    "linux-x64": "x86_64/pear-make",
+    "win32-arm64": `arm64/${name}.exe`,
+    "win32-x64": `x64/${name}.exe`,
+    "darwin-arm64": `${name}`,
+    "darwin-x64": name,
+    "linux-arm64": `aarch64/${name}`,
+    "linux-x64": `x86_64/${name}`,
   };
 
   const currentHost = `${os.platform()}-${os.arch()}`;
