@@ -5,13 +5,8 @@ const path = require("bare-path");
 const { spawnSync } = require("bare-subprocess");
 const App = require("../app.js");
 
-function tmp() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "swap-test-"));
-}
-
 test("builds basic app", { timeout: 120000 }, async (t) => {
-  const dir = tmp();
-  t.teardown(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const dir = path.join(os.cwd(), "test", "fixture");
 
   const entry = path.join(dir, "entry.js").replace(/\\/g, "/");
   const pathDir = path.join(dir, "out");
