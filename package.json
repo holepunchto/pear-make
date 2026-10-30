@@ -1,6 +1,6 @@
 {
   "name": "pear-make",
-  "version": "0.0.0-rc.0",
+  "version": "0.0.0-rc.1",
   "description": "Pear CLI app for building Pear CLI apps.",
   "private": true,
   "bin": "bin.mjs",
