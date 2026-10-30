@@ -33,6 +33,11 @@ const cmd = command(
 cmd.parse(Bare.argv.slice(isDev ? 2 : 1));
 if (cmd.flags.help) Bare.exit();
 
+if (cmd.flags.version) {
+  console.log(`v${pkg.version}`);
+  Bare.exit();
+}
+
 const updates = cmd.flags.updates;
 const storage =
   cmd.flags.storage || (isDev ? null : path.join(persistent(), appName));
