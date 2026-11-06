@@ -1,136 +1,70 @@
 import { command, arg, flag, summary } from 'paparam'
 import { persistent } from 'bare-storage'
-import process from 'bare-process'
-import os from 'bare-os'
-import { isWindows } from 'which-runtime'
-import path from 'bare-path'
 import FileLog from 'bare-file-logger'
 import Console from 'bare-console'
+import fs from 'bare-fs'
+import path from 'bare-path'
+import os from 'bare-os'
 import pkg from './package.json'
 import App from './app.js'
+import updaterLib from './lib/updater.js'
+
+const { spawnUpdater, runUpdater } = updaterLib
 
 const appName = pkg.productName || pkg.name
 const isDev = path.basename(Bare.argv[0], path.extname(Bare.argv[0])) === 'bare'
 
-const cmd = command(
-  appName,
-  summary(pkg.description),
-  arg('<entry>', 'entry point of the app'),
-  flag('--name <name>', 'application name'),
-  flag('--host <host>', 'host to target (default: the current host)').multiple(),
-  flag('--path <dir>', 'output directory'),
-  flag('--storage <dir>', 'custom storage directory').hide(),
-  flag('--no-updates', 'disable OTA updates for this run'),
-  flag('--update-window <ms>', 'updater wait in milliseconds'),
-  flag('--updater', 'run updater daemon').hide(),
-  flag('--version|-v', 'version')
-)
+export default async function run(channel) {
+  const cmd = command(
+    appName,
+    summary(pkg.description),
+    arg('<entry>', 'entry point of the app'),
+    flag('--name <name>', 'application name'),
+    flag('--host <host>', 'host to target (default: the current host)').multiple(),
+    flag('--path <dir>', 'output directory'),
+    flag('--storage <dir>', 'updater storage directory').hide(),
+    flag('--update-window <ms>', 'updater wait in milliseconds').hide(),
+    flag('--updater', 'run updater daemon').hide(),
+    flag('--version|-v', 'version')
+  )
 
-cmd.parse(Bare.argv.slice(isDev ? 2 : 1))
-if (cmd.flags.help) Bare.exit()
+  cmd.parse(Bare.argv.slice(isDev ? 2 : 1))
+  if (cmd.flags.help) Bare.exit()
 
-if (cmd.flags.version) {
-  console.log(`v${pkg.version}`)
-  Bare.exit()
-}
+  if (cmd.flags.version) {
+    console.log(`v${pkg.version}`)
+    Bare.exit()
+  }
 
-const updates = cmd.flags.updates
-const storage = cmd.flags.storage || (isDev ? null : path.join(persistent(), appName))
-const dir = storage || path.join(os.tmpdir(), 'pear', appName)
-let wait
-try {
-  wait = updateWindow(cmd.flags.updateWindow)
-} catch (err) {
-  console.error('[app:error]', err.message)
-  Bare.exit(1)
-}
+  const storage = cmd.flags.storage || (isDev ? null : path.join(persistent(), appName))
+  const dir = storage || path.join(os.tmpdir(), 'pear', appName)
+  const wait = cmd.flags.updateWindow || 30000
 
-if (cmd.flags.updater) {
-  await runUpdater(dir, wait)
-  Bare.exit()
-}
+  if (cmd.flags.updater) {
+    fs.mkdirSync(dir, { recursive: true })
+    const output = new FileLog(path.join(dir, 'updates.log'), { maxSize: 1024 * 1024 })
+    const log = new Console(output)
+    await runUpdater(pkg, dir, wait, isDev, output, log, channel)
+  } else {
+    spawnUpdater(dir, os.execPath(), isDev ? Bare.argv[1] : null, wait)
+    console.log(`${appName} v${pkg.version}`)
+    try {
+      const entry = cmd.args.entry
+      const name = cmd.flags.name
+      const host = cmd.flags.host
+      const pathDir = cmd.flags.path
 
-console.log(`${appName} v${pkg.version}`)
-console.log(`Updates: ${updates === false ? 'disabled' : 'enabled'}`)
+      for await (const resource of App.build({ entry, name, host, pathDir })) {
+        console.log(resource)
+      }
 
-if (updates !== false) {
-  try {
-    App.spawnUpdater(dir, os.execPath(), isDev ? Bare.argv[1] : null, wait)
-  } catch (err) {
-    console.error('[app:error]', err)
-    Bare.exit(1)
+      console.log('\nBuild finished.\n')
+    } catch (err) {
+      console.error('[app:error]', err.message)
+    }
   }
 }
 
-console.log('\nCLI ready.\n')
-
-try {
-  await build({
-    entry: cmd.args.entry,
-    name: cmd.flags.name,
-    host: cmd.flags.host,
-    pathDir: cmd.flags.path
-  })
-
-  console.log('\nBuild finished.\n')
-  Bare.exit()
-} catch (err) {
-  console.error('[app:error]', err.message)
-  Bare.exit(1)
-}
-
-async function runUpdater(dir, wait) {
-  const app = new App({
-    dir,
-    app: isDev ? null : os.execPath(),
-    updates: true,
-    version: pkg.version,
-    upgrade: pkg.upgrade,
-    name: isWindows ? appName + '.exe' : appName
-  })
-  const output = new FileLog(path.join(dir, 'updates.log'), {
-    maxSize: 1024 * 1024
-  })
-  const log = new Console(output)
-
-  app.on('updating', () => log.log('[updater] getting new update'))
-  app.on('updating-delta', (delta) => log.log('[updater]', delta))
-  app.on('updated', () => log.log('[updater] update complete... applying'))
-  app.on('update-applied', () => log.log('[updater] applied update, restart to run latest version'))
-  app.on('error', (err) => log.error('[app:error]', err))
-
-  process.on('SIGHUP', () => app.exit(129))
-  process.on('SIGINT', () => app.exit(130))
-  process.on('SIGQUIT', () => app.exit(131))
-  process.on('SIGTERM', () => app.exit(143))
-
-  let code = 0
-  try {
-    await app.updater(wait)
-  } catch (err) {
-    log.error('[app:error]', err)
-    code = 1
-  }
-  code = Bare.exitCode || code
-  try {
-    await app.exit(code)
-  } finally {
-    output.close()
-  }
-}
-
-function updateWindow(value) {
-  if (value === undefined) return undefined
-
-  const wait = Number(value)
-  if (Number.isSafeInteger(wait) === false || wait < 0) {
-    throw new Error('--update-window must be a non-negative integer')
-  }
-  return wait
-}
-
-async function build({ entry, name, host, pathDir }) {
-  for await (const resource of App.build({ entry, name, host, pathDir })) {
-    console.log(resource)
-  }
+if (isDev && path.basename(Bare.argv[1]) === 'bin.mjs') {
+  await run('dev')
 }

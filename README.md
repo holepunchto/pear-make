@@ -44,7 +44,7 @@ Unless the `--no-updates` flag is used, `pear-make` spawns a short-lived, detach
 
 It waits up to `--update-window` milliseconds (default 30s) to discover an update; a download already in progress is never cut off. Only one updater runs per storage directory at a time (a lock file), and its output is written to `<storage>/updates.log`.
 
-Updates are published over-the-air with the [Pear CLI](https://docs.pears.com/reference/pear/cli/) and consumed via [pear-runtime](https://docs.pears.com/reference/pear/runtime/). The tracked link is the `upgrade` field in [package.json](package.json).
+Updates are published over-the-air with the [Pear CLI](https://docs.pears.com/reference/pear/cli/) and consumed via [pear-runtime](https://docs.pears.com/reference/pear/runtime/). The tracked link is picked from the `upgrade` field in [package.json](package.json) by channel (`production`, `stage`, or `dev`), matching whichever `targets/bin.<channel>.mjs` entrypoint the running binary was built from.
 
 ## Development
 
@@ -61,16 +61,16 @@ The `start` script passes `--no-updates` so local builds aren't swapped out whil
 ### Make Binaries
 
 ```sh
-npm run make                 # auto-detect host os/arch
-npm run make:win32-arm64
-npm run make:win32-x64
-npm run make:darwin-arm64
-npm run make:darwin-x64
-npm run make:linux-arm64
-npm run make:linux-x64
+npm run make                 # auto-detect host os/arch, CHANNEL=production (default)
+npm run make:stage           # auto-detect host os/arch, CHANNEL=stage
+npm run make:dev             # auto-detect host os/arch, CHANNEL=dev
+HOST=win32-arm64 npm run make
+HOST=darwin-arm64 CHANNEL=stage npm run make
 ```
 
-Targets: `darwin-arm64`, `darwin-x64`, `linux-arm64`, `linux-x64`, `win32-arm64`, `win32-x64`. Output goes to `out/make`.
+Hosts: `darwin-arm64`, `darwin-x64`, `linux-arm64`, `linux-x64`, `win32-arm64`, `win32-x64` (via the `HOST` env var; defaults to the current host). Channels: `production` (default), `stage`, `dev` (via `CHANNEL`). Output goes to `out/make`.
+
+Each channel builds from its own entrypoint (`targets/bin.production.mjs`, `targets/bin.stage.mjs`, `targets/bin.dev.mjs`), so the resulting binary is baked with the matching `upgrade` link for that channel. The per-host `make:<host>` scripts always build the `production` channel.
 
 ## License
 
