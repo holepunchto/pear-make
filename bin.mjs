@@ -18,7 +18,7 @@ export default async function run(channel) {
   const cmd = command(
     appName,
     summary(pkg.description),
-    arg('<entry>', 'entry point of the app'),
+    arg('[entry]', 'entry point of the app'),
     flag('--name <name>', 'application name'),
     flag('--host <host>', 'host to target (default: the current host)').multiple(),
     flag('--path <dir>', 'output directory'),
@@ -38,7 +38,13 @@ export default async function run(channel) {
 
   const storage = cmd.flags.storage || (isDev ? null : path.join(persistent(), appName))
   const dir = storage || path.join(os.tmpdir(), 'pear', appName)
-  const wait = cmd.flags.updateWindow || 30000
+  const wait = Number(cmd.flags.updateWindow) || 30000
+
+  if (!cmd.flags.updater && !cmd.args.entry) {
+    console.error(cmd.help())
+    console.error('[app:error] missing <entry>')
+    Bare.exit(1)
+  }
 
   if (cmd.flags.updater) {
     fs.mkdirSync(dir, { recursive: true })
