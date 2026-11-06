@@ -42,35 +42,54 @@ export default async function run(channel) {
 
   if (!cmd.flags.updater && !cmd.args.entry) {
     console.error(cmd.help())
-    console.error('[app:error] missing <entry>')
+    console.error('missing <entry>')
     Bare.exit(1)
   }
 
   if (cmd.flags.updater) {
-    fs.mkdirSync(dir, { recursive: true })
-    const output = new FileLog(path.join(dir, 'updates.log'), { maxSize: 1024 * 1024 })
-    const log = new Console(output)
-    await runUpdater(pkg, dir, wait, isDev, output, log, channel)
+    await updater(dir, wait, channel)
   } else {
-    spawnUpdater(dir, os.execPath(), isDev ? Bare.argv[1] : null, wait)
-    console.log(`${appName} v${pkg.version}`)
     try {
-      const entry = cmd.args.entry
-      const name = cmd.flags.name
-      const host = cmd.flags.host
-      const pathDir = cmd.flags.path
-
-      for await (const resource of App.build({ entry, name, host, pathDir })) {
-        console.log(resource)
-      }
-
-      console.log('\nBuild finished.\n')
+      spawnUpdater(dir, os.execPath(), isDev ? Bare.argv[1] : null, wait)
     } catch (err) {
-      console.error('[app:error]', err.message)
+      console.error('could not start updater:', err.message)
     }
+    console.log(`${appName} v${pkg.version}`)
+    await build(cmd)
   }
 }
 
 if (isDev && path.basename(Bare.argv[1]) === 'bin.mjs') {
   await run('dev')
+}
+
+async function updater(dir, wait, channel) {
+  try {
+    fs.mkdirSync(dir, { recursive: true })
+    const output = new FileLog(path.join(dir, 'updates.log'), { maxSize: 1024 * 1024 })
+    const log = new Console(output)
+    // null when another updater already owns the storage dir
+    const instance = await runUpdater(pkg, dir, wait, isDev, output, log, channel)
+    if (instance) instance.on('error', () => (Bare.exitCode = 1))
+  } catch {
+    Bare.exitCode = 1 // startup failure
+  }
+}
+
+async function build(cmd) {
+  try {
+    const entry = cmd.args.entry
+    const name = cmd.flags.name
+    const host = cmd.flags.host
+    const pathDir = cmd.flags.path
+
+    for await (const resource of App.build({ entry, name, host, pathDir })) {
+      console.log(resource)
+    }
+
+    console.log('\nBuild finished.\n')
+  } catch (err) {
+    console.error(err.message)
+    Bare.exitCode = 1
+  }
 }

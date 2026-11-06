@@ -26,7 +26,6 @@
     "bare-fs": "^4.8.4",
     "bare-os": "^3.9.3",
     "bare-path": "^3.1.2",
-    "bare-process": "^4.5.1",
     "bare-storage": "^1.1.1",
     "corestore": "^7.16.1",
     "fs-native-extensions": "^1.5.2",

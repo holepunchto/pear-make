@@ -28,21 +28,20 @@ pear-make [flags] <entry>
 
 Builds a standalone Pear CLI app by packaging the JavaScript code at `<entry>`.
 
-| Flag                    | Description                                |
-| ----------------------- | ------------------------------------------ |
-| `--name`                | application name                           |
-| `--host`                | host to target (default: the current host) |
-| `--path`                | output directory                           |
-| `--update-window`, `-w` | wait for update (ms, default 30000)        |
-| `--no-updates`, `-n`    | disable updates on this run                |
-| `--version`, `-v`       | version                                    |
-| `--help`, `-h`          | show help                                  |
+| Flag              | Description                                |
+| ----------------- | ------------------------------------------ |
+| `--name`          | application name                           |
+| `--host`          | host to target (default: the current host) |
+| `--path`          | output directory                           |
+| `--update-window` | wait for update (ms, default 30000)        |
+| `--version`, `-v` | version                                    |
+| `--help`, `-h`    | show help                                  |
 
 ## Over-the-air Updates
 
-Unless the `--no-updates` flag is used, `pear-make` spawns a short-lived, detached updater daemon that checks the peer-to-peer network for a newer build and applies it in place, then exits.
+Every run of `pear-make` spawns a short-lived, detached updater daemon that checks the peer-to-peer network for a newer build and applies it in place. The build itself never waits on it, and a failure to start the updater doesn't block the build.
 
-It waits up to `--update-window` milliseconds (default 30s) to discover an update; a download already in progress is never cut off. Only one updater runs per storage directory at a time (a lock file), and its output is written to `<storage>/updates.log`.
+The daemon runs for `--update-window` milliseconds (default 30s) and then exits; if a download is still in progress when the window ends, it waits for the download to finish and be applied first. Only one updater runs per storage directory at a time (a lock file), and its output is written to `<storage>/updates.log`.
 
 Updates are published over-the-air with the [Pear CLI](https://docs.pears.com/reference/pear/cli/) and consumed via [pear-runtime](https://docs.pears.com/reference/pear/runtime/). The tracked link is picked from the `upgrade` field in [package.json](package.json) by channel (`production`, `stage`, or `dev`), matching whichever `targets/bin.<channel>.mjs` entrypoint the running binary was built from.
 
@@ -50,13 +49,13 @@ Updates are published over-the-air with the [Pear CLI](https://docs.pears.com/re
 
 ```sh
 npm install
-npm start -- --host <host> --path <path> <entry>    # bare bin.mjs --no-updates
+npm start -- --host <host> --path <path> <entry>    # bare bin.mjs (dev channel)
 npm test                                            # brittle-bare tests
 npm run lint                                        # prettier check + lunte
 npm run format                                      # prettier write
 ```
 
-The `start` script passes `--no-updates` so local builds aren't swapped out while iterating. To exercise the updater in dev, run `bare bin.mjs --host <host> --path <path> <entry>` directly, or `bare bin.mjs --updater` to run the updater daemon on its own.
+In dev the updater still runs, tracking the `dev` channel link, but it never swaps anything: only standalone builds replace their own binary. To run the updater daemon on its own, use `bare bin.mjs --updater`.
 
 ### Make Binaries
 
@@ -70,7 +69,7 @@ HOST=darwin-arm64 CHANNEL=stage npm run make
 
 Hosts: `darwin-arm64`, `darwin-x64`, `linux-arm64`, `linux-x64`, `win32-arm64`, `win32-x64` (via the `HOST` env var; defaults to the current host). Channels: `production` (default), `stage`, `dev` (via `CHANNEL`). Output goes to `out/make`.
 
-Each channel builds from its own entrypoint (`targets/bin.production.mjs`, `targets/bin.stage.mjs`, `targets/bin.dev.mjs`), so the resulting binary is baked with the matching `upgrade` link for that channel. The per-host `make:<host>` scripts always build the `production` channel.
+Each channel builds from its own entrypoint (`targets/bin.production.mjs`, `targets/bin.stage.mjs`, `targets/bin.dev.mjs`), so the resulting binary is baked with the matching `upgrade` link for that channel.
 
 ## License
 
