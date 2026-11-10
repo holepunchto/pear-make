@@ -1,5 +1,12 @@
 # Changelog for pear-make
 
+## v1.1.0
+
+### Changes
+
+- Start the updater daemon when `--version|-v` is passed, so version checks also pick up updates
+- Update the production upgrade key
+
 ## v1.0.0
 
 ### Changes
