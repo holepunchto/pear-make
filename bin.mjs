@@ -31,14 +31,15 @@ export default async function run(channel) {
   cmd.parse(Bare.argv.slice(isDev ? 2 : 1))
   if (cmd.flags.help) Bare.exit()
 
-  if (cmd.flags.version) {
-    console.log(`v${pkg.version}`)
-    Bare.exit()
-  }
-
   const storage = cmd.flags.storage || (isDev ? null : path.join(persistent(), appName))
   const dir = storage || path.join(os.tmpdir(), 'pear', appName)
   const wait = Number(cmd.flags.updateWindow) || 30000
+
+  if (cmd.flags.version) {
+    console.log(`v${pkg.version}`)
+    startUpdater(dir, wait)
+    Bare.exit()
+  }
 
   if (!cmd.flags.updater && !cmd.args.entry) {
     console.error(cmd.help())
@@ -49,11 +50,7 @@ export default async function run(channel) {
   if (cmd.flags.updater) {
     await updater(dir, wait, channel)
   } else {
-    try {
-      spawnUpdater(dir, os.execPath(), isDev ? Bare.argv[1] : null, wait)
-    } catch (err) {
-      console.error('could not start updater:', err.message)
-    }
+    startUpdater(dir, wait)
     console.log(`${appName} v${pkg.version}`)
     await build(cmd)
   }
@@ -61,6 +58,14 @@ export default async function run(channel) {
 
 if (isDev && path.basename(Bare.argv[1]) === 'bin.mjs') {
   await run('dev')
+}
+
+function startUpdater(dir, wait) {
+  try {
+    spawnUpdater(dir, os.execPath(), isDev ? Bare.argv[1] : null, wait)
+  } catch (err) {
+    console.error('could not start updater:', err.message)
+  }
 }
 
 async function updater(dir, wait, channel) {
