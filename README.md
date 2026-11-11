@@ -11,13 +11,13 @@ Evergreen command via peer-to-peer over-the-air-updates.
 With [Pear CLI](https://install.pears.com):
 
 ```sh
-pear install pear://TODO
+pear install pear://u3d888539k964t6omfzxdmf1a9c4jx4iiprm8jyt56x91izm78sy
 ```
 
 Via `npx`:
 
 ```sh
-npx pear-install pear://TODO
+npx pear-install pear://u3d888539k964t6omfzxdmf1a9c4jx4iiprm8jyt56x91izm78sy
 ```
 
 ## Usage
