@@ -1,0 +1,11 @@
+{
+  "make": {
+    "builds": [
+      {
+        "name": "git-remote-git+pear",
+        "entry": "entry.js",
+        "standalone": true
+      }
+    ]
+  }
+}

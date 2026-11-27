@@ -1,0 +1,11 @@
+{
+  "make": {
+    "builds": [
+      {
+        "name": "a",
+        "standalone": true,
+        "package": true
+      }
+    ]
+  }
+}
