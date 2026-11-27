@@ -57,6 +57,16 @@ jobs:
             echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           fi
 
+      - name: pear
+        shell: bash
+        run: |
+          npx -y pear-install pear://smw4thqaqed9iq6bae7a9cxd4fesruixgkafe38jny33ahs33igy
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            echo "$LOCALAPPDATA\\Programs\\pear" >> "$GITHUB_PATH"
+          else
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          fi
+
       - name: Install w/ dev deps
         run: npm install
 

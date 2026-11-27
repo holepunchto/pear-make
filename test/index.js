@@ -3,7 +3,8 @@ const fs = require('fs')
 const path = require('path')
 const tmp = require('test-tmp')
 const process = require('process')
-const { spawn, spawnSync } = require('child_process')
+const { spawnSync } = require('child_process')
+const fsx = require('fs-native-extensions')
 const { platform, arch, isBare } = require('which-runtime')
 const manifest = require('../package.json')
 const bareBuild = require('bare-build/package')
@@ -465,25 +466,29 @@ test('updater - the daemon takes the storage directory, and one has it at a time
   }
 
   const storage = await tmp(t)
+  const log = path.join(storage, 'updates.log')
 
-  const held = spawn(process.execPath, [
-    BIN,
-    '--updater',
-    '--storage',
-    storage,
-    '--update-window',
-    '20000'
-  ])
+  const ran = spawnSync(
+    process.execPath,
+    [BIN, '--updater', '--storage', storage, '--update-window', '1'],
+    { encoding: 'utf8' }
+  )
 
-  t.teardown(() => held.kill())
+  t.is(ran.status, 0, 'the daemon runs its window out and closes itself')
+  t.ok(fs.existsSync(path.join(storage, 'updater.lock')), 'the daemon takes the lock')
+  t.ok(fs.existsSync(log), 'the log is where the storage is')
+  t.ok(
+    fs.existsSync(path.join(storage, 'pear-runtime')),
+    'and so is what it mirrors into: ' + fs.readFileSync(log, 'utf8')
+  )
 
-  for (let i = 0; fs.existsSync(path.join(storage, 'updater.lock')) === false; i++) {
-    t.ok(i < 300, 'the daemon takes the lock')
-    await new Promise((resolve) => setTimeout(resolve, 100))
-  }
+  const taken = fs.openSync(path.join(storage, 'updater.lock'), 'a+')
 
-  t.ok(fs.existsSync(path.join(storage, 'updates.log')), 'the log is where the storage is')
-  t.ok(fs.existsSync(path.join(storage, 'pear-runtime')), 'and so is what it mirrors into')
+  t.ok(fsx.tryLock(taken), 'the lock went with it')
+  t.teardown(() => {
+    fsx.unlock(taken)
+    fs.closeSync(taken)
+  })
 
   const second = spawnSync(
     process.execPath,
@@ -493,7 +498,7 @@ test('updater - the daemon takes the storage directory, and one has it at a time
 
   t.is(second.status, 0, 'a second one is not an error')
   t.ok(
-    fs.readFileSync(path.join(storage, 'updates.log'), 'utf8').includes('already running'),
+    fs.readFileSync(log, 'utf8').includes('already running'),
     'it says so in the log and leaves the first to it'
   )
 })
