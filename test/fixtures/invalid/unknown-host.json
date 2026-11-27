@@ -1,0 +1,10 @@
+{
+  "make": {
+    "hosts": ["sunos-sparc"],
+    "builds": [
+      {
+        "name": "a"
+      }
+    ]
+  }
+}

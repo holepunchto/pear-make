@@ -1,0 +1,13 @@
+{
+  "updates": {
+    "minver": "0.0.1"
+  },
+  "make": {
+    "toolchain": {
+      "bare-build": "npm:#semver:^1.6.2",
+      "npm": "npm:#semver:>=10",
+      "pear": "pear://smw4thqaqed9iq6bae7a9cxd4fesruixgkafe38jny33ahs33igy#semver:^3.7.0"
+    },
+    "hosts": ["darwin-arm64", "darwin-x64", "linux-arm64", "linux-x64", "win32-arm64", "win32-x64"]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "make": {
+    "defaultTarget": {
+      "first": true
+    },
+    "builds": [
+      {
+        "name": "a"
+      }
+    ]
+  }
+}

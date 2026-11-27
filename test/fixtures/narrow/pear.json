@@ -1,0 +1,18 @@
+{
+  "make": {
+    "hosts": ["darwin-arm64", "linux-x64"],
+    "builds": [
+      {
+        "name": "everywhere",
+        "entry": "entry.js",
+        "standalone": true
+      },
+      {
+        "name": "linux-only",
+        "entry": "entry.js",
+        "standalone": true,
+        "hosts": ["linux-x64"]
+      }
+    ]
+  }
+}

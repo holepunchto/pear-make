@@ -1,0 +1,17 @@
+{
+  "make": {
+    "hosts": ["darwin-arm64", "linux-x64"],
+    "builds": [
+      {
+        "name": "fixture",
+        "entry": "entry.js",
+        "standalone": true,
+        "sign": {
+          "darwin-*": {
+            "identity": "$PEAR_MAKE_TEST_IDENTITY"
+          }
+        }
+      }
+    ]
+  }
+}

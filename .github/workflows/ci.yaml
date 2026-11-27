@@ -9,7 +9,19 @@ jobs:
     runs-on: ubuntu-latest
     name: Lint
     steps:
+      - name: gip
+        shell: bash
+        run: |
+          npx -y pear-install pear://gipjk71nbuj3zasm4ywczb93zqk5xbfup16c6d5j8w8yeja4ob6o
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            echo "$LOCALAPPDATA\\Programs\\gip" >> "$GITHUB_PATH"
+          else
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          fi
+
       - uses: holepunchto/actions/node-base@v1
+        with:
+          allow-git: all
       - run: npm run lint
 
   build:
@@ -34,6 +46,16 @@ jobs:
     steps:
       - name: Setup repo
         uses: holepunchto/actions/.github/steps/setup-repo@v1
+
+      - name: gip
+        shell: bash
+        run: |
+          npx -y pear-install pear://gipjk71nbuj3zasm4ywczb93zqk5xbfup16c6d5j8w8yeja4ob6o
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            echo "$LOCALAPPDATA\\Programs\\gip" >> "$GITHUB_PATH"
+          else
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          fi
 
       - name: Install w/ dev deps
         run: npm install

@@ -1,48 +1,150 @@
 {
   "name": "pear-make",
   "version": "0.0.0-rc.1",
-  "description": "Pear CLI app for building Pear CLI apps.",
+  "description": "Make binaries & application containers from source",
   "private": true,
   "bin": "bin.mjs",
+  "files": [
+    "bin.mjs",
+    "lib",
+    "pear.json",
+    "NOTICE",
+    "CHANGELOG.md"
+  ],
   "upgrade": {
     "production": "pear://u3d888539k964t6omfzxdmf1a9c4jx4iiprm8jyt56x91izm78sy",
     "stage": "pear://m897mcrjujjk9hbcs18qf8yz993wkyhguttoxu8fre1qtd9dy3uo",
     "dev": "pear://m9b5fx8druw5rpdoq8s4583ecuw5btwg5rxra93nwcy414ptt74y"
   },
+  "imports": {
+    "child_process": {
+      "bare": "bare-subprocess",
+      "default": "child_process"
+    },
+    "events": {
+      "bare": "bare-events",
+      "default": "events"
+    },
+    "fs": {
+      "bare": "bare-fs",
+      "default": "fs"
+    },
+    "os": {
+      "bare": "bare-os",
+      "default": "os"
+    },
+    "path": {
+      "bare": "bare-path",
+      "default": "path"
+    },
+    "process": {
+      "bare": "bare-process",
+      "default": "process"
+    }
+  },
   "scripts": {
     "format": "prettier . --write",
-    "test": "brittle-bare test/index.js",
+    "test": "npm run test:bare && npm run test:node",
+    "test:bare": "brittle-bare test/index.js",
+    "test:node": "brittle-node test/index.js",
     "lint": "prettier . --check && lunte",
     "start": "bare bin.mjs",
-    "make": "node scripts/make.js",
-    "make:stage": "CHANNEL=stage node scripts/make.js",
-    "make:dev": "CHANNEL=dev node scripts/make.js"
+    "make": "bare bin.mjs",
+    "release": "bare bin.mjs release"
+  },
+  "command": {
+    "summary": "Make binaries & application containers from source",
+    "description": "Configure with <source>/pear.json#make",
+    "arg [source]": "The project to build (default: .)",
+    "rest [-- <args>]": "Override flags after -- passed to bare-build",
+    "command make": {
+      "summary": "Compile the builds. The default command"
+    },
+    "command resolve": {
+      "summary": "Check the toolchain, then get the dependencies",
+      "arg [source]": "The project to resolve (default: .)",
+      "flag --unmet|-u <command>": "Install the tree with this (default: npm install)"
+    },
+    "command deps": {
+      "hidden": true,
+      "summary": "Install a dependency tree of pear links",
+      "arg [source]": "The project to install for (default: .)",
+      "flag --resolved": "Take the tree as surveyed, skipping the survey",
+      "flag --with <command>": "Install with this (default: npm install)"
+    },
+    "command release": {
+      "summary": "Collect a deployment folder from compiled apps",
+      "rest [...paths]": "App directories to collect (default: out/make/<host>)",
+      "flag --to <dir>": "Where it goes (default: out/release)"
+    },
+    "command install": {
+      "summary": "Put an app on this system, compiling as needed",
+      "arg [source]": "git+pear://, pear://, path or release (default: .)",
+      "flag --to <dir>": "Where it goes (default: this OS app directory)"
+    },
+    "flag --host <host>": [
+      "Host to target, repeatable (default: this host)",
+      {
+        "multiple": true
+      }
+    ],
+    "flag --target <name>": [
+      "Build only this target, repeatable",
+      {
+        "multiple": true
+      }
+    ],
+    "flag --config <file>": "Read { \"make\": { … } } from this file, not pear.json",
+    "flag --yes|-y": "Answer yes to every confirmation",
+    "flag --json": "Newline delimited JSON output",
+    "flag --storage <dir>": [
+      "updater storage directory",
+      {
+        "hide": true
+      }
+    ],
+    "flag --update-window <ms>": [
+      "updater wait in milliseconds",
+      {
+        "hide": true
+      }
+    ],
+    "flag --no-updates": "Do not start the updater",
+    "flag --updater": [
+      "run updater daemon",
+      {
+        "hide": true
+      }
+    ],
+    "flag --version|-v": "Print the version"
   },
   "dependencies": {
-    "bare-build": "^1.6.2",
+    "bare-build": "^1.7.0",
     "bare-console": "^6.2.0",
     "bare-daemon": "^1.2.5",
+    "bare-events": "^2.9.1",
     "bare-file-logger": "^1.2.3",
     "bare-fs": "^4.8.4",
     "bare-os": "^3.9.3",
     "bare-path": "^3.1.2",
+    "bare-process": "^4.4.1",
     "bare-storage": "^1.1.1",
-    "corestore": "^7.16.1",
+    "bare-subprocess": "^6.2.2",
     "fs-native-extensions": "^1.5.2",
     "graceful-goodbye": "^1.3.3",
-    "hyperswarm": "^4.17.2",
     "paparam": "^1.15.0",
+    "pear-repo": "git+file://pear/sof56di3nrpyfiny1dfksocqo3axh7fpn4e19b91hqqhecikp9oy/pear-repo",
     "pear-runtime": "^1.3.1",
     "ready-resource": "^1.2.0",
     "which-runtime": "^1.4.0"
   },
   "devDependencies": {
-    "bare-runtime": "^1.36.0",
-    "bare-subprocess": "^6.2.2",
+    "bare-runtime": "^1.38.0",
     "brittle": "^4.5.0",
     "lunte": "^1.8.6",
     "prettier": "^3.9.10",
-    "prettier-config-holepunch": "^2.0.0"
+    "prettier-config-holepunch": "^2.0.0",
+    "test-tmp": "^1.4.0"
   },
   "repository": {
     "type": "git",

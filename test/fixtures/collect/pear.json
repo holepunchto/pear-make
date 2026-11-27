@@ -1,0 +1,1 @@
+{ "make": { "lifecycle": { "release": "./collect.sh" } } }

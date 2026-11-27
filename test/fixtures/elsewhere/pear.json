@@ -1,0 +1,10 @@
+{
+  "make": {
+    "builds": [
+      {
+        "name": "unread",
+        "entry": "nope.js"
+      }
+    ]
+  }
+}
